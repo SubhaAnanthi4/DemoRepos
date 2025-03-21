@@ -1,51 +1,57 @@
 #!groovy
+
 pipeline {
     environment {
-        DEMO = "Demo"
+        JAVA_TOOL_OPTIONS = "-Duser.home=/var/jenkins_home"
+        DEMO="Demo"
     }
-    
-    agent {
-        docker {
-            image "ssriram12/maven-3.9.9:jdk13"
-            label "docker"
-            args "-v /tmp/maven:/home/jenkins -e MAVEN_CONFIG=/home/jenkins"
+   agent  { 
+       docker {
+          image "ssriram12/maven-3.9.9:jdk13"
+          label "docker"
+           args "-v /tmp/maven:/var/jenkins_home -e MAVEN_CONFIG=/var/jenkins_home"
         }
-    }
+		} 
+// 	any 
     
+
     stages {
         stage("Build") {
             steps {
                 sh "mvn -version"
-                sh "echo id = $(id)"
+                sh "echo id = `id`"
+		  //sh "sudo chown -R jenkins:jenkins /home/jenkins"
+		// sh "echo TOKEN : $TOKEN" 
                 sh "mvn clean compile"
             }
         }
-        
-        stage("Test") {
+	stage("Test") {
             steps {
                 sh "mvn test"
             }
         }
+	//stage("SonarAnalysis")
+	//{
+		//def scannerHome = tool 'SonarQubeScanner';
+		// agent { label "docker" } 
+		//steps {
+			//sh "echo to be implemented" 
+			//withSonarQubeEnv("SonarServer") {
+			//sh "/home/sidkalpop/scanner/bin/sonar-scanner"
+			//sh "echo to be implemented"
+			//} 
+		//}
+	//} 
 
-        stage("SonarAnalysis") {
-            agent { label "docker" }
-            steps {
-                sh "echo to be implemented"
-                // Uncomment the following lines if SonarQube is configured:
-                // def scannerHome = tool 'SonarQubeScanner'
-                // withSonarQubeEnv("SonarServer") {
-                //     sh "${scannerHome}/bin/sonar-scanner"
-                // }
-            }
-        }
-
-        stage("Deploy") {
+	stage("Deploy") {
             steps {
                 sh "mvn install"
             }
         }
+
+
     }
-    
+
     post {
         always {
             cleanWs()
